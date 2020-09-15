@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gaefourn <gaefourn@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/09/15 15:34:47 by gaefourn          #+#    #+#             */
+/*   Updated: 2020/09/15 16:48:24 by gaefourn         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_one.h"
 
 int	get_params(char **av, t_params *params)
@@ -7,6 +19,7 @@ int	get_params(char **av, t_params *params)
 	params->eat = -5;
 	params->sleep = -5;
 	params->timetoeat = -5;
+	params->process = 1;
 	params->philos = ft_atoi(av[1]);
 	params->die = ft_atoi(av[2]);
 	params->eat = ft_atoi(av[3]);
@@ -16,22 +29,44 @@ int	get_params(char **av, t_params *params)
 	if (params->philos == 0 || params->eat == 0 || params->eat == 0 ||
 		params->sleep == 0 || params->timetoeat == 0)
 		return (-1);
+	params->mutex = malloc(sizeof(pthread_mutex_t) * params->philos);
 	return (0);
 }
 
-void	*philo_fun(int i, t_params *params, pthread_mutex_t mutex)
+void	*philo_fun(void *arg)
 {
+	t_params *params;
 	int timer;
+	int i;
 	
+	params = (t_params*)arg;
+	i = params->process;
 	timer = 0;
-	usleep(10000 * i);
 	while (timer < params->die)
 	{
-		if (pthread_mutex_lock(&mutex) == 0)
+		if (pthread_mutex_trylock(&params->mutex[i]) == 0 && pthread_mutex_trylock(&params->mutex[(i - 1) % 5]) == 0)
 		{
+			pthread_mutex_lock(&params->mutex[i]);
+			printf("Philo %d has taken a fork\n", i);
+			pthread_mutex_lock(&params->mutex[i - 1]);
 			printf("Philo %d has taken a fork\n", i);
 			usleep(params->eat);
-			pthread_mutex_unlock(&mutex);
+			pthread_mutex_unlock(&params->mutex[i]);
+			pthread_mutex_unlock(&params->mutex[i - 1]);
+			printf("Philo %d is sleeping\n", i);
+			usleep(params->sleep);
+			timer = 0;
+			usleep(10000);
+		}
+		else if (pthread_mutex_trylock(&params->mutex[i]) == 0 && pthread_mutex_trylock(&params->mutex[(i + 1) % 5]) == 0)
+		{
+			pthread_mutex_lock(&params->mutex[i]);
+			printf("Philo %d has taken a fork\n", i);
+			pthread_mutex_lock(&params->mutex[i + 1]);
+			printf("Philo %d has taken a fork\n", i);
+			usleep(params->eat);
+			pthread_mutex_unlock(&params->mutex[i]);
+			pthread_mutex_unlock(&params->mutex[i + 1]);
 			printf("Philo %d is sleeping\n", i);
 			usleep(params->sleep);
 			timer = 0;
@@ -39,10 +74,9 @@ void	*philo_fun(int i, t_params *params, pthread_mutex_t mutex)
 		}
 		else
 		{
-			ft_putnbr_fd(i, 1);
-			write(1, "is thinking\n", 13);
-			usleep(1000);
-			timer += 1000;
+			printf("Philo %d is thinking\n", i);
+			usleep(params->die/5);
+			timer += params->die/5;
 		}
 		usleep(10000);
 	}	
@@ -50,26 +84,33 @@ void	*philo_fun(int i, t_params *params, pthread_mutex_t mutex)
 	{
 		ft_putnbr_fd(i, 1);
 		write(1, "died\n", 5);
+		exit(0);
 	}
 	return NULL;
 }
 
 void	main_func(t_params *params)
 {
-	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_t thread[params->philos];
-	size_t i;
+	int i;
 	
-	i = 1;
-	while ((int)i <= params->philos + 1)
+	i = 0;
+	while (i < params->philos)
 	{
-		pthread_create(&thread[i], NULL, philo_fun(i, params, mutex), (void*)(i + 1));
+		pthread_mutex_init(&params->mutex[i], NULL);
+		i++;
+	}
+	i = 0;
+	while (i < params->philos)
+	{
+		pthread_create(&thread[i], NULL, philo_fun, (void*)(params));
+		usleep(1000);
+		params->process++;
 		i++;
 	}
 	usleep(1000);
-	pthread_mutex_unlock(&mutex);
-	i = 1;
-	while ((int)i <= params->philos +1)
+	i = 0;
+	while (i < params->philos)
 	{
 		pthread_join(thread[i], NULL);
 		i++;

@@ -7,15 +7,15 @@
 # include <pthread.h>
 
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
 typedef struct	s_params
 {
-	int		philos;
-	int		die;
-	int		eat;
-	int		sleep;
-	int		timetoeat;
+	int				philos;
+	int				die;
+	int				eat;
+	int				sleep;
+	int				timetoeat;
+	int				process;
+	pthread_mutex_t *mutex;
 }				t_params;
 
 
