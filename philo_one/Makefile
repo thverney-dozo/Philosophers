@@ -16,7 +16,8 @@ HEADER   =	$(addprefix $(HEADER_P)/,$(HEADER_N))
 SRC_PATH =	./srcs
 TMP		 =	main.c \
 			ft_atoi.c \
-			ft_putnbr_fd.c
+			ft_putnbr_fd.c \
+			ft_errors.c
 
 SRC_NAME =	$(TMP) $(GNL)
 SRC      =	$(addprefix $(SRC_PATH)/,$(SRC_NAME))

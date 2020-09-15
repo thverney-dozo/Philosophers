@@ -1,21 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: thverney <thverney@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/09/15 14:30:27 by thverney          #+#    #+#             */
+/*   Updated: 2020/09/15 15:48:06 by thverney         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_one.h"
 
 int	get_params(char **av, t_params *params)
 {
-	params->philos = -5;
-	params->die = -5;
-	params->eat = -5;
-	params->sleep = -5;
-	params->timetoeat = -5;
 	params->philos = ft_atoi(av[1]);
 	params->die = ft_atoi(av[2]);
 	params->eat = ft_atoi(av[3]);
 	params->sleep = ft_atoi(av[4]);
 	if (av[5])
 		params->timetoeat = ft_atoi(av[5]);
-	if (params->philos == 0 || params->eat == 0 || params->eat == 0 ||
-		params->sleep == 0 || params->timetoeat == 0)
-		return (-1);
+	if (params->philos < 1 || params->eat < 1 || params->eat < 1
+	|| params->sleep < 1 || params->timetoeat < 1)
+		return (error_args(params, av));
 	return (0);
 }
 
@@ -29,10 +36,10 @@ void	*philo_fun(int i, t_params *params, pthread_mutex_t mutex)
 	{
 		if (pthread_mutex_lock(&mutex) == 0)
 		{
-			printf("Philo %d has taken a fork\n", i);
+			// printf("Philo %d has taken a fork\n", i);
 			usleep(params->eat);
 			pthread_mutex_unlock(&mutex);
-			printf("Philo %d is sleeping\n", i);
+			// printf("Philo %d is sleeping\n", i);
 			usleep(params->sleep);
 			timer = 0;
 			usleep(10000);
@@ -40,7 +47,7 @@ void	*philo_fun(int i, t_params *params, pthread_mutex_t mutex)
 		else
 		{
 			ft_putnbr_fd(i, 1);
-			write(1, "is thinking\n", 13);
+			// write(1, "is thinking\n", 13);
 			usleep(1000);
 			timer += 1000;
 		}
@@ -86,10 +93,7 @@ int	main(int ac, char **av)
 		return (-1);
 	}
 	if (get_params(av, &params) == -1)
-	{
-		write(2, "At least one argument is invalid.\n", 35);
 		return (-1);
-	}
 	main_func(&params);
 	return (0);
 }
