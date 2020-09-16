@@ -6,7 +6,7 @@
 /*   By: gaefourn <gaefourn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/15 15:34:47 by gaefourn          #+#    #+#             */
-/*   Updated: 2020/09/15 16:48:24 by gaefourn         ###   ########.fr       */
+/*   Updated: 2020/09/16 12:10:57 by gaefourn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,33 +44,25 @@ void	*philo_fun(void *arg)
 	timer = 0;
 	while (timer < params->die)
 	{
-		if (pthread_mutex_trylock(&params->mutex[i]) == 0 && pthread_mutex_trylock(&params->mutex[(i - 1) % 5]) == 0)
+		if (timer >= params->die / 3)
 		{
 			pthread_mutex_lock(&params->mutex[i]);
 			printf("Philo %d has taken a fork\n", i);
-			pthread_mutex_lock(&params->mutex[i - 1]);
+			if ((i + 1) != params->philos)
+				pthread_mutex_lock(&params->mutex[i + 1]);
+			else
+				pthread_mutex_lock(&params->mutex[0]);
 			printf("Philo %d has taken a fork\n", i);
+			printf("Philo %d has is eating\n", i);
 			usleep(params->eat);
 			pthread_mutex_unlock(&params->mutex[i]);
-			pthread_mutex_unlock(&params->mutex[i - 1]);
+			if ((i + 1) != params->philos)
+				pthread_mutex_unlock(&params->mutex[i + 1]);
+			else
+				pthread_mutex_unlock(&params->mutex[0]);
 			printf("Philo %d is sleeping\n", i);
 			usleep(params->sleep);
 			timer = 0;
-			usleep(10000);
-		}
-		else if (pthread_mutex_trylock(&params->mutex[i]) == 0 && pthread_mutex_trylock(&params->mutex[(i + 1) % 5]) == 0)
-		{
-			pthread_mutex_lock(&params->mutex[i]);
-			printf("Philo %d has taken a fork\n", i);
-			pthread_mutex_lock(&params->mutex[i + 1]);
-			printf("Philo %d has taken a fork\n", i);
-			usleep(params->eat);
-			pthread_mutex_unlock(&params->mutex[i]);
-			pthread_mutex_unlock(&params->mutex[i + 1]);
-			printf("Philo %d is sleeping\n", i);
-			usleep(params->sleep);
-			timer = 0;
-			usleep(10000);
 		}
 		else
 		{
@@ -79,6 +71,7 @@ void	*philo_fun(void *arg)
 			timer += params->die/5;
 		}
 		usleep(10000);
+		printf("\n\nTIMER PHILO [%d] = = = = = = [%d]\n\n", i, timer);
 	}	
 	if (timer == i)
 	{
