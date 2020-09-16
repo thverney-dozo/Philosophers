@@ -15,6 +15,8 @@ typedef struct	s_params
 	int				sleep;
 	int				timetoeat;
 	int				process;
+	int				alive;
+	char			*forks;
 	pthread_mutex_t *mutex;
 }				t_params;
 

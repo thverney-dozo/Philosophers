@@ -6,7 +6,7 @@
 /*   By: gaefourn <gaefourn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/15 15:34:47 by gaefourn          #+#    #+#             */
-/*   Updated: 2020/09/16 12:10:57 by gaefourn         ###   ########.fr       */
+/*   Updated: 2020/09/16 16:09:00 by gaefourn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,24 @@
 
 int	get_params(char **av, t_params *params)
 {
+	int i;
+	
+	i = -1;
 	params->philos = -5;
 	params->die = -5;
 	params->eat = -5;
 	params->sleep = -5;
 	params->timetoeat = -5;
 	params->process = 1;
+	params->alive = 0;
 	params->philos = ft_atoi(av[1]);
 	params->die = ft_atoi(av[2]);
 	params->eat = ft_atoi(av[3]);
 	params->sleep = ft_atoi(av[4]);
+	params->forks = malloc(sizeof(char) * params->philos + 1);
+	while (++i < params->philos)
+		params->forks[i] = 'A';
+	params->forks[i] = '\0';
 	if (av[5])
 		params->timetoeat = ft_atoi(av[5]);
 	if (params->philos == 0 || params->eat == 0 || params->eat == 0 ||
@@ -35,50 +43,105 @@ int	get_params(char **av, t_params *params)
 
 void	*philo_fun(void *arg)
 {
-	t_params *params;
-	int timer;
-	int i;
-	
+	t_params	*params;
+	int 		timer;
+	int 		i;
+	int 		j;
+	int			k;
+	int			l;
+	int			check;
+
 	params = (t_params*)arg;
 	i = params->process;
 	timer = 0;
-	while (timer < params->die)
+	j = 0;
+	k = 0;
+	l = 0;
+	check = -1;
+	usleep(1000);
+	while (timer <= params->die)
 	{
-		if (timer >= params->die / 3)
+		check++;
+		if (params->alive == 10)
+			return (NULL);
+		if (params->forks[i] == 'A' && k == 0)
 		{
-			pthread_mutex_lock(&params->mutex[i]);
-			printf("Philo %d has taken a fork\n", i);
-			if ((i + 1) != params->philos)
+			if ((i + 1) != params->philos && params->forks[i + 1] == 'A')
+			{
+				params->forks[i + 1] = 'F';
 				pthread_mutex_lock(&params->mutex[i + 1]);
+				l++;
+			}
 			else
-				pthread_mutex_lock(&params->mutex[0]);
-			printf("Philo %d has taken a fork\n", i);
-			printf("Philo %d has is eating\n", i);
+			{
+				if (params->forks[0] == 'A')
+				{
+					params->forks[0] = 'F';
+					pthread_mutex_lock(&params->mutex[0]);
+					l++;
+				}
+			}
+			params->forks[i] = 'F';
+			pthread_mutex_lock(&params->mutex[i]);
+			l++;
+		}
+		if (l == 2)
+		{
+			printf("[%d] Philo %d has taken a fork\n", check, i);
+			printf("[%d] Philo %d has taken a fork\n", check, i);
+			printf("[%d] Philo %d is eating\n", check, i);
 			usleep(params->eat);
+			params->forks[i] = 'A';
 			pthread_mutex_unlock(&params->mutex[i]);
 			if ((i + 1) != params->philos)
+			{
+				params->forks[i + 1] = 'A';
 				pthread_mutex_unlock(&params->mutex[i + 1]);
+			}
 			else
+			{
+				params->forks[0] = 'A';
 				pthread_mutex_unlock(&params->mutex[0]);
-			printf("Philo %d is sleeping\n", i);
-			usleep(params->sleep);
+			}
 			timer = 0;
+			printf("[%d] Philo %d is sleeping\n", check, i);
+			usleep(params->sleep);
+			timer = timer + params->sleep;
+			j++;
+			if (params->timetoeat != -5)
+				if (j == params->timetoeat)
+				{
+					printf("[%d] Philo %d ate time_to_eat times\n", check, i);
+					exit(0);
+				}
+			k++;
+			l = 0;
 		}
 		else
 		{
-			printf("Philo %d is thinking\n", i);
-			usleep(params->die/5);
-			timer += params->die/5;
+			params->forks[i] = 'A';
+			pthread_mutex_unlock(&params->mutex[i]);
+			if ((i + 1) != params->philos)
+			{
+				params->forks[i + 1] = 'A';
+				pthread_mutex_unlock(&params->mutex[i + 1]);
+			}
+			else
+			{
+				params->forks[0] = 'A';
+				pthread_mutex_unlock(&params->mutex[0]);
+			}
+			printf("[%d] Philo %d is thinking\n", check, i);
+			usleep(params->eat);
+			timer = timer + params->eat;
+			k = 0;
+			l = 0;
 		}
-		usleep(10000);
-		printf("\n\nTIMER PHILO [%d] = = = = = = [%d]\n\n", i, timer);
+		usleep(1000);
 	}	
-	if (timer == i)
-	{
-		ft_putnbr_fd(i, 1);
-		write(1, "died\n", 5);
-		exit(0);
-	}
+	printf("[%d] Philo %d died\n", check, i);
+	params->alive = 10;
+	exit(0);
 	return NULL;
 }
 
@@ -97,7 +160,7 @@ void	main_func(t_params *params)
 	while (i < params->philos)
 	{
 		pthread_create(&thread[i], NULL, philo_fun, (void*)(params));
-		usleep(1000);
+		usleep(100);
 		params->process++;
 		i++;
 	}
