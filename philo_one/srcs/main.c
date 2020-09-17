@@ -6,7 +6,7 @@
 /*   By: gaefourn <gaefourn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/15 15:34:47 by gaefourn          #+#    #+#             */
-/*   Updated: 2020/09/17 14:44:17 by gaefourn         ###   ########.fr       */
+/*   Updated: 2020/09/17 14:49:05 by gaefourn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,6 +136,7 @@ void	*philo_fun(void *arg)
 				{
 					time2 = (time - get_time_rel(time3)) * - 1;
 					printf("[%ld] Philo %d ate time_to_eat times\n", time2, i);
+					params->alive = 10;
 					return (NULL);
 				}
 			k++;
@@ -184,7 +185,7 @@ void	main_func(t_params *params)
 	while (i < params->philos)
 	{
 		pthread_create(&thread[i], NULL, philo_fun, (void*)(params));
-		usleep(10000);
+		usleep(1000);
 		params->process++;
 		i++;
 	}
