@@ -17,7 +17,11 @@ SRC_PATH =	./srcs
 TMP		 =	main.c \
 			ft_atoi.c \
 			ft_putnbr_fd.c \
-			ft_errors.c
+			logs.c \
+			death.c \
+			ft_usleep.c \
+			ft_actions.c \
+			ft_clean.c
 
 SRC_NAME =	$(TMP) $(GNL)
 SRC      =	$(addprefix $(SRC_PATH)/,$(SRC_NAME))

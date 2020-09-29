@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gaefourn <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/07 15:06:21 by gaefourn          #+#    #+#             */
-/*   Updated: 2019/10/08 17:15:38 by gaefourn         ###   ########.fr       */
+/*   Updated: 2020/09/29 15:25:12 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,6 @@ int	ft_atoi(const char *nptr)
 		i++;
 	}
 	if (neg > 0)
-		return (-nb);
+		return (nb * -1);
 	return (nb);
 }

@@ -3,97 +3,105 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thverney <thverney@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/09/15 14:30:27 by thverney          #+#    #+#             */
-/*   Updated: 2020/09/15 15:48:06 by thverney         ###   ########.fr       */
+/*   Created: 2020/09/15 15:34:47 by gaefourn          #+#    #+#             */
+/*   Updated: 2020/09/29 15:31:48 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_one.h"
 
-int	get_params(char **av, t_params *params)
+int	get_params(char **av)
 {
-	params->philos = ft_atoi(av[1]);
-	params->die = ft_atoi(av[2]);
-	params->eat = ft_atoi(av[3]);
-	params->sleep = ft_atoi(av[4]);
-	if (av[5])
-		params->timetoeat = ft_atoi(av[5]);
-	if (params->philos < 1 || params->eat < 1 || params->eat < 1
-	|| params->sleep < 1 || params->timetoeat < 1)
-		return (error_args(params, av));
-	return (0);
+	g_banquet.nb_philos = ft_atoi(av[1]);
+	g_banquet.die = ft_atoi(av[2]);
+	g_banquet.eat = ft_atoi(av[3]);
+	g_banquet.sleep = ft_atoi(av[4]);
+	g_banquet.timetoeat = (av[5] ? ft_atoi(av[5]) : 0);
+	if ((g_banquet.nb_philos <= 0 || g_banquet.eat <= 0 || g_banquet.eat <= 0
+	|| g_banquet.sleep <= 0 || g_banquet.timetoeat < 0))
+		return (FAIL);
+	return (SUCCESS);
 }
 
-void	*philo_fun(int i, t_params *params, pthread_mutex_t mutex)
+void	*philo_fun(void *philo)
 {
-	int timer;
-	
-	timer = 0;
-	usleep(10000 * i);
-	while (timer < params->die)
-	{
-		if (pthread_mutex_lock(&mutex) == 0)
-		{
-			// printf("Philo %d has taken a fork\n", i);
-			usleep(params->eat);
-			pthread_mutex_unlock(&mutex);
-			// printf("Philo %d is sleeping\n", i);
-			usleep(params->sleep);
-			timer = 0;
-			usleep(10000);
-		}
-		else
-		{
-			ft_putnbr_fd(i, 1);
-			// write(1, "is thinking\n", 13);
-			usleep(1000);
-			timer += 1000;
-		}
-		usleep(10000);
-	}	
-	if (timer == i)
-	{
-		ft_putnbr_fd(i, 1);
-		write(1, "died\n", 5);
-	}
-	return NULL;
+	t_philo		*p;
+	pthread_t	death;
+
+
+	p = (t_philo*)philo;
+	g_banquet.start = get_time();
+	p->last_meal = g_banquet.start;
+	p->death_time = p->last_meal + g_banquet.die;
+	if (pthread_create(&death, NULL, &handle_death, p))
+		return ((void *)FAIL);
+	pthread_detach(death);
+	while (1)
+		ft_actions(p);
+	return ((void *)SUCCESS);
 }
 
-void	main_func(t_params *params)
+int	init(void)
 {
-	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-	pthread_t thread[params->philos];
-	size_t i;
+	pthread_t 	thread;
+	int 		i;
 	
-	i = 1;
-	while ((int)i <= params->philos + 1)
+	i = -1;
+	g_banquet.philos = NULL;
+	if (!(g_banquet.philos = malloc(sizeof(t_philo) * g_banquet.nb_philos)))
+		return (FAIL);
+	g_banquet.mutex = NULL;
+	if (!(g_banquet.mutex = malloc(sizeof(pthread_mutex_t) * g_banquet.nb_philos)))
+		return (FAIL);
+	while (++i < g_banquet.nb_philos)
 	{
-		pthread_create(&thread[i], NULL, philo_fun(i, params, mutex), (void*)(i + 1));
-		i++;
+		g_banquet.philos[i].pos = i;
+		g_banquet.philos[i].meal_count = 0;
+		g_banquet.philos[i].last_meal = 0;
+		pthread_mutex_init(&g_banquet.mutex[i], NULL);
+		pthread_mutex_init(&g_banquet.philos[i].eating, NULL);
+		pthread_mutex_init(&g_banquet.philos[i].eat_counter, NULL);
+		pthread_mutex_lock(&g_banquet.philos[i].eat_counter);
+		g_banquet.philos[i].lfork = i;
+		g_banquet.philos[i].rfork = (i + 1 != g_banquet.nb_philos) ? i + 1 : 0;
 	}
-	usleep(1000);
-	pthread_mutex_unlock(&mutex);
-	i = 1;
-	while ((int)i <= params->philos +1)
+	pthread_mutex_init(&g_banquet.write, NULL);
+	pthread_mutex_init(&g_banquet.stop_banquet, NULL);
+	pthread_mutex_lock(&g_banquet.stop_banquet);
+	if (g_banquet.timetoeat)
 	{
-		pthread_join(thread[i], NULL);
-		i++;
+		if (pthread_create(&thread, NULL, &handle_timetoeat, NULL))
+			return (FAIL);
+		pthread_detach(thread);
 	}
-	
+	i = 0;
+	while (i < g_banquet.nb_philos)
+	{
+		pthread_create(&thread, NULL, &philo_fun, (void*)(&g_banquet.philos[i++]));
+		pthread_detach(thread);
+		usleep(100);
+	}
+	return (SUCCESS);
 }
 int	main(int ac, char **av)
 {
-	t_params params;
-	
 	if (ac < 5 || ac > 6)
 	{
 		write(2, "No args.\n", 9);
 		return (-1);
 	}
-	if (get_params(av, &params) == -1)
-		return (-1);
-	main_func(&params);
-	return (0);
+	memset(&g_banquet, 0, sizeof(g_banquet));
+	if (get_params(av))
+	{
+		write(2, "At least one argument is invalid.\n", 35);
+		return (FAIL);
+	}
+	if (init())
+		return (FAIL);
+	pthread_mutex_lock(&g_banquet.stop_banquet);
+	pthread_mutex_unlock(&g_banquet.stop_banquet);
+	ft_clean();
+	return (SUCCESS);
 }
