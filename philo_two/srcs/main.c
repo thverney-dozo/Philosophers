@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thverney <thverney@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/09/15 15:34:47 by gaefourn          #+#    #+#             */
-/*   Updated: 2020/09/30 19:56:01 by thverney         ###   ########.fr       */
+/*   Created: 2020/09/15 15:34:47 by thverney          #+#    #+#             */
+/*   Updated: 2020/10/02 08:54:17 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo_one.h"
+#include "philo_two.h"
 
 int				get_params(char **av)
 {
@@ -32,7 +32,7 @@ void			*philo_fun(void *philo)
 
 	p = (t_philo*)philo;
 	g_banquet.start = get_time();
-	p->last_meal = g_banquet.start;
+	p->last_meal = get_time();
 	p->death_time = p->last_meal + g_banquet.die;
 	if (pthread_create(&death, NULL, &handle_death, p))
 		return ((void *)FAIL);
@@ -42,21 +42,24 @@ void			*philo_fun(void *philo)
 	return ((void *)SUCCESS);
 }
 
-int				init2(void)
+int				init2(int i)
 {
 	pthread_t	thread;
-	int			i;
 
-	pthread_mutex_init(&g_banquet.write, NULL);
-	pthread_mutex_init(&g_banquet.stop_banquet, NULL);
-	pthread_mutex_lock(&g_banquet.stop_banquet);
+	sem_unlink(ASKFORKS);
+	sem_unlink(FORKS);
+	sem_unlink(WRITE);
+	sem_unlink(DEATH);
+	g_banquet.ask_forks = sem_open(ASKFORKS, O_CREAT, 0666, 1);
+	g_banquet.forks = sem_open(FORKS, O_CREAT, 0666, g_banquet.nb_philos);
+	g_banquet.write = sem_open(WRITE, O_CREAT, 0666, 1);
+	g_banquet.stop_banquet = sem_open(DEATH, O_CREAT, 0666, 0);
 	if (g_banquet.timetoeat)
 	{
 		if (pthread_create(&thread, NULL, &handle_timetoeat, NULL))
 			return (FAIL);
 		pthread_detach(thread);
 	}
-	i = 0;
 	while (i < g_banquet.nb_philos)
 	{
 		pthread_create(&thread, NULL, &philo_fun,
@@ -70,28 +73,25 @@ int				init2(void)
 int				init(void)
 {
 	int			i;
+	char		name[50];
 
-	i = -1;
 	g_banquet.philos = NULL;
 	if (!(g_banquet.philos = malloc(sizeof(t_philo) * g_banquet.nb_philos)))
 		return (FAIL);
-	g_banquet.mutex = NULL;
-	if (!(g_banquet.mutex = malloc(sizeof(pthread_mutex_t)
-	* g_banquet.nb_philos)))
-		return (FAIL);
+	i = -1;
 	while (++i < g_banquet.nb_philos)
 	{
 		g_banquet.philos[i].pos = i;
 		g_banquet.philos[i].meal_count = 0;
 		g_banquet.philos[i].last_meal = 0;
-		pthread_mutex_init(&g_banquet.mutex[i], NULL);
-		pthread_mutex_init(&g_banquet.philos[i].eating, NULL);
-		pthread_mutex_init(&g_banquet.philos[i].eat_counter, NULL);
-		pthread_mutex_lock(&g_banquet.philos[i].eat_counter);
-		g_banquet.philos[i].lfork = i;
-		g_banquet.philos[i].rfork = (i + 1 != g_banquet.nb_philos) ? i + 1 : 0;
+		get_name(name, i + 1, 0);
+		sem_unlink(name);
+		g_banquet.philos[i].eating = sem_open(name, O_CREAT, 0666, 1);
+		get_name(name, i + 1, 1);
+		sem_unlink(name);
+		g_banquet.philos[i].eat_count = sem_open(name, O_CREAT, 0666, 0);
 	}
-	return (init2());
+	return (init2(0));
 }
 
 int				main(int ac, char **av)
@@ -109,8 +109,7 @@ int				main(int ac, char **av)
 	}
 	if (init())
 		return (FAIL);
-	pthread_mutex_lock(&g_banquet.stop_banquet);
-	pthread_mutex_unlock(&g_banquet.stop_banquet);
+	sem_wait(g_banquet.stop_banquet);
 	ft_clean();
 	return (SUCCESS);
 }

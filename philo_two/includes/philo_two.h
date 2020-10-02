@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo_one.h                                        :+:      :+:    :+:   */
+/*   philo_two.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thverney <thverney@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/30 19:48:10 by thverney          #+#    #+#             */
-/*   Updated: 2020/09/30 19:48:12 by thverney         ###   ########.fr       */
+/*   Updated: 2020/10/02 08:50:48 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_ONE_H
-# define PHILO_ONE_H
+#ifndef PHILO_TWO_H
+# define PHILO_TWO_H
 
 # include <stdio.h>
 # include <unistd.h>
@@ -19,6 +19,10 @@
 # include <pthread.h>
 # include <sys/time.h>
 # include <string.h>
+# include <inttypes.h>
+# include <semaphore.h>
+# include <fcntl.h>
+# include <errno.h>
 
 # define SUCCESS			0
 # define FAIL				1
@@ -29,17 +33,19 @@
 # define HAS_LEFT_ITS_FORKS	6
 # define MAX_EAT_REACHED	7
 # define DIED				8
+# define FORKS				"/FORKS"
+# define WRITE				"/WRITE"
+# define DEATH				"/DEATH"
+# define ASKFORKS			"/ASKFORKS"
 
 typedef struct				s_philo
 {
 	int						pos;
 	int						meal_count;
-	int						lfork;
-	int						rfork;
 	uint64_t				last_meal;
 	uint64_t				death_time;
-	pthread_mutex_t			eating;
-	pthread_mutex_t			eat_counter;
+	sem_t					*eating;
+	sem_t					*eat_count;
 }							t_philo;
 
 typedef struct				s_banquet
@@ -51,11 +57,10 @@ typedef struct				s_banquet
 	uint64_t				sleep;
 	uint64_t				start;
 	t_philo					*philos;
-	pthread_mutex_t			*mutex;
-	pthread_mutex_t			death;
-	pthread_mutex_t			stop_banquet;
-	pthread_mutex_t			write;
-	pthread_mutex_t			exit;
+	sem_t					*forks;
+	sem_t					*ask_forks;
+	sem_t					*stop_banquet;
+	sem_t					*write;
 }							t_banquet;
 
 t_banquet					g_banquet;
@@ -70,5 +75,6 @@ int							is_available(t_philo *p, int i);
 void						ft_usleep(unsigned int n);
 void						*handle_death(void *philo);
 void						*handle_timetoeat(void *philo);
+void						get_name(char *name, int pos, int eat);
 
 #endif

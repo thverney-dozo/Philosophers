@@ -1,4 +1,4 @@
-NAME     =	philo_one
+NAME     =	philo_two
 
 # 	Compiler  #
 CC       =	gcc
@@ -9,7 +9,7 @@ DEBUG	 = -g3 -fsanitize=address
 
 # 	Headers   #
 HEADER_P = 	./includes
-HEADER_N =	philo_one.h
+HEADER_N =	philo_two.h
 HEADER   =	$(addprefix $(HEADER_P)/,$(HEADER_N))
 
 #	Sources   #

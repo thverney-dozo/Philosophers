@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_actions.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thverney <thverney@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/29 14:07:45 by aeoithd           #+#    #+#             */
-/*   Updated: 2020/09/30 19:49:08 by thverney         ###   ########.fr       */
+/*   Updated: 2020/10/02 07:26:09 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ void	ft_actions(t_philo *p)
 {
 	pthread_mutex_lock(&g_banquet.mutex[p->pos % 2 ? p->rfork : p->lfork]);
 	print_log(p, HAS_TAKEN_A_FORK);
+	usleep(1000);
 	pthread_mutex_lock(&g_banquet.mutex[p->pos % 2 ? p->lfork : p->rfork]);
 	print_log(p, HAS_TAKEN_A_FORK);
 	pthread_mutex_lock(&p->eating);
