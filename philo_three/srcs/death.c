@@ -6,11 +6,11 @@
 /*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/29 04:00:53 by aeoithd           #+#    #+#             */
-/*   Updated: 2020/10/03 06:16:04 by aeoithd          ###   ########.fr       */
+/*   Updated: 2020/10/03 05:03:47 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo_one.h"
+#include "philo_three.h"
 
 void			*handle_timetoeat(void *philo)
 {
@@ -23,11 +23,11 @@ void			*handle_timetoeat(void *philo)
 	{
 		i = 0;
 		while (i < g_banquet.nb_philos)
-			pthread_mutex_lock(&g_banquet.philos[i++].eat_counter);
+			sem_wait(g_banquet.philos[i++].eat_count);
 		nb_times_philos_have_eaten++;
 	}
 	print_log(NULL, MAX_EAT_REACHED);
-	pthread_mutex_unlock(&g_banquet.stop_banquet);
+	sem_post(g_banquet.stop_banquet);
 	return (0);
 }
 
@@ -39,14 +39,19 @@ void			*handle_death(void *philo)
 	while (1)
 	{
 		usleep(1000);
-		pthread_mutex_lock(&p->eating);
+		if (sem_wait(p->eating))
+			return ((void *)FAIL);
 		if (p->death_time < get_time())
 		{
 			print_log(p, DIED);
-			pthread_mutex_unlock(&p->eating);
-			pthread_mutex_unlock(&g_banquet.stop_banquet);
-			return (0);
+			if (sem_post(p->eating))
+				return ((void *)FAIL);
+			if (sem_post(g_banquet.stop_banquet))
+				return ((void *)FAIL);
+			return (SUCCESS);
 		}
-		pthread_mutex_unlock(&p->eating);
+		if (sem_post(p->eating))
+			return ((void *)FAIL);
 	}
+	return ((void *)SUCCESS);
 }

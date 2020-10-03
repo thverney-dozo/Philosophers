@@ -6,30 +6,31 @@
 /*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/29 14:07:45 by aeoithd           #+#    #+#             */
-/*   Updated: 2020/10/03 01:41:30 by aeoithd          ###   ########.fr       */
+/*   Updated: 2020/10/03 07:44:01 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo_one.h"
+#include "philo_three.h"
 
 void	ft_actions(t_philo *p)
 {
-	pthread_mutex_lock(&g_banquet.mutex[p->pos % 2 ? p->rfork : p->lfork]);
+	sem_wait(g_banquet.ask_forks);
+	sem_wait(g_banquet.forks);
 	print_log(p, HAS_TAKEN_A_FORK);
-	pthread_mutex_lock(&g_banquet.mutex[p->pos % 2 ? p->lfork : p->rfork]);
+	sem_wait(g_banquet.forks);
 	print_log(p, HAS_TAKEN_A_FORK);
-	pthread_mutex_lock(&p->eating);
+	sem_post(g_banquet.ask_forks);
+	sem_wait(p->eating);
 	p->last_meal = get_time();
 	p->death_time = p->last_meal + g_banquet.die;
 	print_log(p, IS_EATING);
 	p->meal_count += 1;
 	ft_usleep(g_banquet.eat);
-	pthread_mutex_unlock(&g_banquet.mutex[p->pos % 2 ? p->rfork : p->pos]);
-	pthread_mutex_unlock(&g_banquet.mutex[p->pos % 2 ? p->pos : p->rfork]);
-	pthread_mutex_unlock(&p->eating);
-	pthread_mutex_unlock(&p->eat_counter);
+	sem_post(p->eating);
+	sem_post(p->eat_count);
+	sem_post(g_banquet.forks);
+	sem_post(g_banquet.forks);
 	print_log(p, IS_SLEEPING);
 	ft_usleep(g_banquet.sleep);
 	print_log(p, IS_THINKING);
-	usleep(100);
 }

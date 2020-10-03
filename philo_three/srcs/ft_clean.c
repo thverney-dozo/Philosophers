@@ -6,11 +6,11 @@
 /*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/29 15:18:27 by aeoithd           #+#    #+#             */
-/*   Updated: 2020/10/03 02:25:15 by aeoithd          ###   ########.fr       */
+/*   Updated: 2020/10/03 05:24:38 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo_two.h"
+#include "philo_three.h"
 
 void			get_name(char *name, int pos, int eat)
 {

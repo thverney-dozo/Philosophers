@@ -6,9 +6,11 @@
 /*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/07 15:06:21 by thverney          #+#    #+#             */
-/*   Updated: 2020/10/02 04:29:35 by aeoithd          ###   ########.fr       */
+/*   Updated: 2020/10/03 05:05:09 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "philo_one.h"
 
 int	ft_atoi(const char *nptr)
 {

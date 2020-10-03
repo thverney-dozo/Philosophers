@@ -6,11 +6,11 @@
 /*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/07 15:06:21 by thverney          #+#    #+#             */
-/*   Updated: 2020/10/03 05:06:10 by aeoithd          ###   ########.fr       */
+/*   Updated: 2020/10/03 05:06:00 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo_two.h"
+#include "philo_three.h"
 
 int	ft_atoi(const char *nptr)
 {

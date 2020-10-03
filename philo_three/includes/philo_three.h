@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo_two.h                                        :+:      :+:    :+:   */
+/*   philo_three.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aeoithd <aeoithd@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/09/30 19:48:10 by thverney          #+#    #+#             */
-/*   Updated: 2020/10/03 07:03:24 by aeoithd          ###   ########.fr       */
+/*   Created: 2020/10/03 05:31:21 by aeoithd           #+#    #+#             */
+/*   Updated: 2020/10/03 07:05:41 by aeoithd          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_TWO_H
-# define PHILO_TWO_H
+#ifndef PHILO_THREE_H
+# define PHILO_THREE_H
 
 # include <stdio.h>
 # include <unistd.h>
@@ -23,6 +23,7 @@
 # include <semaphore.h>
 # include <fcntl.h>
 # include <errno.h>
+# include <signal.h>
 
 # define SUCCESS			0
 # define FAIL				1
@@ -37,6 +38,7 @@
 # define WRITE				"/WRITE"
 # define DEATH				"/DEATH"
 # define ASKFORKS			"/ASKFORKS"
+# define OFF				"/OFF"
 
 typedef struct				s_philo
 {
@@ -44,6 +46,7 @@ typedef struct				s_philo
 	int						meal_count;
 	uint64_t				last_meal;
 	uint64_t				death_time;
+	pid_t					pid;
 	sem_t					*eating;
 	sem_t					*eat_count;
 }							t_philo;
