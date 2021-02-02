@@ -1,6 +1,6 @@
 # Philosophers
 
-Differentimplementations of the dining philosopher's problem.
+Different implementations of the dining philosopher's problem.
 
 ## philo_one
 philosophers with threads and mutex
